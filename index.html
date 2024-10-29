@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Anime Gallery</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #6366f1;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --card-bg: #1e293b;
+            --gradient-1: #7c3aed;
+            --gradient-2: #3b82f6;
+            --gradient-3: #06b6d4;
+            --shadow-color: rgba(139, 92, 246, 0.3);
+            --content-width: min(480px, 100% - 2rem);
+            --image-aspect-ratio: 3/2; /* Adjusted aspect ratio */
+        }
+
+        body[data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .background-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(var(--bg-secondary) 1px, transparent 1px),
+                linear-gradient(90deg, var(--bg-secondary) 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .container {
+            width: var(--content-width);
+            margin: 0 auto;
+            padding: 1rem;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            gap: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            position: relative;
+            padding-top: 3rem;
+        }
+
+        .header h1 {
+            font-size: clamp(1.5rem, 5vw, 1.75rem);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--gradient-1), var(--gradient-2), var(--gradient-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        .header p {
+            font-size: clamp(0.875rem, 3vw, 1rem);
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--card-bg);
+            border: 2px solid var(--accent-primary);
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .image-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            perspective: 1000px;
+            width: 100%;
+        }
+
+        .image-container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 10px 30px -5px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 100%;
+            
+        }
+
+        .image-holder {
+            position: relative;
+            width: 100%;
+            padding-bottom: calc(100% * (var(--image-aspect-ratio)));
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg-secondary);
+        }
+
+        img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+            transition: opacity 0.3s ease;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: clamp(0.6rem, 2vw, 0.75rem);
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: clamp(0.875rem, 2.5vw, 0.95rem);
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .share-container {
+            margin-top: 0.75rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .share-button {
+            padding: clamp(0.6rem, 2vw, 0.75rem);
+            border: none;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1rem, 3vw, 1.25rem);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .loading-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: clamp(30px, 8vw, 40px);
+            height: clamp(30px, 8vw, 40px);
+            border: 3px solid transparent;
+            border-top: 3px solid var(--gradient-1);
+            border-right: 3px solid var(--gradient-2);
+            border-bottom: 3px solid var(--gradient-3);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: clamp(0.875rem, 2.5vw, 1rem);
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile-specific adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            .header {
+                padding-top: 4rem;
+            }
+
+            .theme-toggle {
+                top: 0.75rem;
+                right: 0.75rem;
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .image-container {
+                padding: 0.75rem;
+            }
+
+            .controls {
+                gap: 0.5rem;
+            }
+
+            .share-container {
+                gap: 0.5rem;
+            }
+        }
+
+        /* Safe area adjustments for modern mobile devices */
+        @supports (padding: max(0px)) {
+            .container {
+                padding-left: max(1rem, env(safe-area-inset-left));
+                padding-right: max(1rem, env(safe-area-inset-right));
+                padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-grid"></div>
+    <div class="container">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <i class="fas fa-moon"></i>
+        </button>
+
+        <div class="header">
+            <h1>Anime Art Gallery</h1>
+            <p>Discover the future of anime art</p>
+        </div>
+
+        <div class="image-wrapper">
+            <div class="image-container" id="imageContainer">
+                <div class="image-holder">
+                    <img id="animeImage" src="/api/placeholder/600/800" alt="Anime Artwork" />
+                    <div class="loading-overlay" id="loadingOverlay">
+                        <div class="spinner"></div>
+                        <div class="loading-text">Loading new image...</div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn" id="refreshButton">
+                        <i class="fas fa-sync-alt"></i>
+                        Next Image
+                    </button>
+                    <button class="btn" id="downloadButton">
+                        <i class="fas fa-download"></i>
+                        Download
+                    </button>
+                </div>
+                <div class="share-container">
+                    <button class="share-button" id="shareFacebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </button>
+                    <button class="share-button" id="shareTiktok">
+                        <i class="fab fa-tiktok"></i>
+                    </button>
+                    <button class="share-button" id="shareInstagram">
+                        <i class="fab fa-instagram"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="cordova.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script>
+        const imgElement = document.getElementById('animeImage');
+        const refreshButton = document.getElementById('refreshButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const imageContainer = document.getElementById('imageContainer');
+        const themeToggle = document.getElementById('themeToggle');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        const getStoredTheme = () => localStorage.getItem('theme') || 'dark';
+        const setStoredTheme = theme => localStorage.setItem('theme', theme);
+
+        let currentTheme = getStoredTheme();
+        document.body.setAttribute('data-theme', currentTheme);
+        themeToggle.innerHTML = currentTheme === 'dark' ? 
+            '<i class="fas fa-moon"></i>' : 
+            '<i class="fas fa-sun"></i>';
+
+        themeToggle.addEventListener('click', () => {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', currentTheme);
+            themeToggle.innerHTML = currentTheme === 'dark' ? 
+                '<i class="fas fa-moon"></i>' : 
+                '<i class="fas fa-sun"></i>';
+            setStoredTheme(currentTheme);
+        });
+
+        async function fetchImage() {
+            try {
+                loadingOverlay.classList.add('visible');
+                imageContainer.classList.add('slide-out');
+                refreshButton.disabled = true;
+                
+                const response = await axios.get('https://api.waifu.pics/sfw/neko');
+                
+                const imageLoadPromise = new Promise((resolve, reject) => {
+                    const tempImg = new Image();
+                    tempImg.onload = resolve;
+                    tempImg.onerror = reject;
+                    tempImg.src = response.data.url;
+                });
+
+                await Promise.all([
+                    new Promise(resolve => setTimeout(resolve, 200)),
+                    imageLoadPromise
+                ]);
+
+                imgElement.src = response.data.url;
+                
+                loadingOverlay.classList.remove('visible');
+                imageContainer.classList.remove('slide-out');
+                imageContainer.classList.add('slide-in');
+                refreshButton.disabled = false;
+                
+                setTimeout(() => {
+                    imageContainer.classList.remove('slide-in');
+                }, 400);
+            } catch (error) {
+                console.error('Error fetching image:', error);
+                imgElement.alt = 'Failed to load image';
+                loadingOverlay.classList.remove('visible');
+                refreshButton.disabled = false;
+                alert('Failed to load image. Please try again.');
+            }
+        }
+
+        downloadButton.addEventListener('click', () => {
+            if (imgElement.src) {
+                const link = document.createElement('a');
+                link.href = imgElement.src;
+                link.download = 'anime_artwork.jpg';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                alert('Image downloaded!');
+            } else {
+                alert('No image to download!');
+            }
+        });
+
+        document.getElementById('shareFacebook').addEventListener('click', () => {
+            const url = encodeURIComponent(imgElement.src);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+        });
+
+        document.getElementById('shareTiktok').addEventListener('click', () => {
+            alert('Please download the image and upload it to TikTok manually.');
+        });
+
+        document.getElementById('shareInstagram').addEventListener('click', () => {
+            alert('Please save the image and upload it to Instagram manually.');
+        });
+
+        refreshButton.addEventListener('click', fetchImage);
+        fetchImage();
+    </script>
+</body>
+</html>
